@@ -52,6 +52,7 @@ namespace FileSearch.Presentation.Wpf.Models
             SearchInSubDirectory(fileSearchArgs.Path, fileSearchArgs.SearchPattern);
 
             OnSearchFinished(EventArgs.Empty);
+            isSearchProcessRunning = false;
         }
 
         private void SearchInDirectory(string path, string searchPattern)
@@ -83,9 +84,12 @@ namespace FileSearch.Presentation.Wpf.Models
 
         public void StartSearch(string path, string searchPattern)
         {
-            searchFileThread = new Thread(SearchFile) { IsBackground = true };
-            searchFileThread.Start(new FileSearchArgs(path, searchPattern));
-            isSearchProcessRunning = true;
+            if (searchFileThread == null || !searchFileThread.IsAlive)
+            {
+                searchFileThread = new Thread(SearchFile) { IsBackground = true };
+                searchFileThread.Start(new FileSearchArgs(path, searchPattern));
+                isSearchProcessRunning = true;
+            }
         }
 
         public void StopSearch()
