@@ -8,6 +8,7 @@ namespace FileSearch.Presentation.Wpf.Models
 {
     internal sealed class LocalDirectory
     {
+        private bool isSearchProcessRunning;
         private Thread searchFileThread;
 
         public IEnumerable<string> GetLogicalDrives() => Directory.GetLogicalDrives();
@@ -32,12 +33,14 @@ namespace FileSearch.Presentation.Wpf.Models
         {
             OnSearchPaused(EventArgs.Empty);
             searchFileThread.Suspend();
+            isSearchProcessRunning = false;
         }
 
         public void ResumeSearch()
         {
             OnSearchResumed(EventArgs.Empty);
             searchFileThread.Resume();
+            isSearchProcessRunning = true;
         }
 
         private void SearchFile(object obj)
@@ -82,11 +85,15 @@ namespace FileSearch.Presentation.Wpf.Models
         {
             searchFileThread = new Thread(SearchFile) { IsBackground = true };
             searchFileThread.Start(new FileSearchArgs(path, searchPattern));
+            isSearchProcessRunning = true;
         }
 
         public void StopSearch()
         {
-            searchFileThread.Resume();
+            if (!isSearchProcessRunning)
+            {
+                searchFileThread.Resume();
+            }
             searchFileThread.Abort();
             OnSearchFinished(EventArgs.Empty);
         }
